@@ -9,6 +9,15 @@ import org.junit.Test;
 
 /**
  * Tests the registration and login features.
+ * 
+ * This test suite validates:
+ * - Username format validation
+ * - Password complexity requirements
+ * - Cell phone number validation (South African format)
+ * - User registration status messages
+ * - Login functionality
+ * 
+ * @version 1.0
  */
 public class LoginTest {
 
