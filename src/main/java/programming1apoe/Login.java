@@ -13,6 +13,13 @@ import java.util.regex.Pattern;
 
 /**
  * Handles registration and login for the user.
+ * 
+ * This class manages user authentication including:
+ * - User registration with validation
+ * - Login verification
+ * - Password complexity checking
+ * - Username format validation
+ * - Cell phone number validation
  */
 public class Login {
 
