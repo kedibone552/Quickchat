@@ -12,6 +12,14 @@ import java.util.Scanner;
 
 /**
  * Runs the registration and login application.
+ * 
+ * This is the entry point for the QuickChat authentication system.
+ * It handles:
+ * - User registration with validation
+ * - User login verification
+ * - Interactive command-line interface
+ * 
+ * @version 1.0
  */
 public class Main {
 
