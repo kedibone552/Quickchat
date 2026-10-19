@@ -21,7 +21,7 @@
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.release>26</maven.compiler.release>
+        <maven.compiler.release>21</maven.compiler.release>
         <exec.mainClass>com.mycompany.programming1apoe.Programming1APOE</exec.mainClass>
     </properties>
     <name>PROG5121_QuickChat_POE</name>
