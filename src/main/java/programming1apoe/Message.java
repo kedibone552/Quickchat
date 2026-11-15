@@ -9,6 +9,7 @@ package programming1apoe;
  * @author Matha
  */
 
+import com.google.gson.annotations.SerializedName;
 import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Scanner;
@@ -21,7 +22,9 @@ public class Message {
 
     private String messageID;
     private int messageNumber;
+    @SerializedName(value = "recipient", alternate = {"recipientCell"})
     private String recipientCell;
+    @SerializedName(value = "message", alternate = {"messageText"})
     private String messageText;
     private String messageHash;
     private String action = "";

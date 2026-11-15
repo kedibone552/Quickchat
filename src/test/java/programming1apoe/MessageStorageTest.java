@@ -58,6 +58,7 @@ public class MessageStorageTest {
         assertTrue(json.contains("\"message\""));
         assertTrue(json.contains("Hello chomiii"));
         assertTrue(json.contains("\"action\": \"STORED\""));
+        assertEquals("Hello chomiii", storage.readMessages().get(0).getMessageText());
     }
 
     @Test
@@ -81,6 +82,6 @@ public class MessageStorageTest {
         );
 
         assertFalse(json.contains("This message is disregarded"));
-        assertEquals("[\n\n]\n", json);
+        assertTrue(storage.readMessages().isEmpty());
     }
 }
