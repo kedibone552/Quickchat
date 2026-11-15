@@ -11,16 +11,25 @@ import java.util.List;
  * @author Matha
  */
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.List;
+import java.util.ArrayList;
+
 
 public class MessageStorage {
 
     private final Path filePath;
+
+    private final Gson gson = new GsonBuilder()
+            .setPrettyPrinting()
+            .create();
 
     public MessageStorage() {
         this(Path.of("messages.json"));
@@ -30,57 +39,58 @@ public class MessageStorage {
         this.filePath = filePath;
     }
 
-    // Saves stored messages in JSON format.
-    // JSON format reference: https://www.json.org/json-en.html
+    // Saves only messages with the STORED action.
     public void storeMessage(List<Message> messages) throws IOException {
-        StringBuilder json = new StringBuilder("[\n");
-        boolean first = true;
+        List<Message> stored = new ArrayList<>();
 
         for (Message message : messages) {
-            if (!"STORED".equals(message.getAction())) {
-                continue;
+            if ("STORED".equals(message.getAction())) {
+                stored.add(message);
             }
-
-            if (!first) {
-                json.append(",\n");
-            }
-
-            json.append("  {\n")
-                .append("    \"messageID\": \"")
-                .append(escape(message.getMessageID())).append("\",\n")
-                .append("    \"messageNumber\": ")
-                .append(message.getMessageNumber()).append(",\n")
-                .append("    \"messageHash\": \"")
-                .append(escape(message.getMessageHash())).append("\",\n")
-                .append("    \"recipient\": \"")
-                .append(escape(message.getRecipientCell())).append("\",\n")
-                .append("    \"message\": \"")
-                .append(escape(message.getMessageText())).append("\",\n")
-                .append("    \"action\": \"STORED\"\n")
-                .append("  }");
-
-            first = false;
         }
 
-        json.append("\n]\n");
-
         Files.writeString(
-            filePath,
-            json.toString(),
-            StandardCharsets.UTF_8,
-            StandardOpenOption.CREATE,
-            StandardOpenOption.TRUNCATE_EXISTING,
-            StandardOpenOption.WRITE
+                filePath,
+                gson.toJson(stored),
+                StandardCharsets.UTF_8
         );
     }
 
-    private String escape(String value) {
-        return value.replace("\\", "\\\\")
-                    .replace("\"", "\\\"")
-                    .replace("\b", "\\b")
-                    .replace("\f", "\\f")
-                    .replace("\n", "\\n")
-                    .replace("\r", "\\r")
-                    .replace("\t", "\\t");
+    // Reads the JSON file into an array list.
+    public List<Message> readMessages() throws IOException {
+        if (!Files.exists(filePath)) {
+            return new ArrayList<>();
+        }
+
+        String json = Files.readString(filePath, StandardCharsets.UTF_8);
+
+        if (json.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Type messageListType = new TypeToken<ArrayList<Message>>() {
+        }.getType();
+
+        List<Message> messages = gson.fromJson(json, messageListType);
+
+        return messages == null ? new ArrayList<>() : messages;
+    }
+
+    // Deletes a message using its message hash.
+    public boolean deleteMessage(String messageHash) throws IOException {
+        List<Message> messages = readMessages();
+
+        boolean removed = messages.removeIf(message ->
+                message.getMessageHash().equals(messageHash));
+
+        if (removed) {
+            storeMessage(messages);
+        }
+
+        return removed;
+    }
+
+    public Path getFilePath() {
+        return filePath;
     }
 }

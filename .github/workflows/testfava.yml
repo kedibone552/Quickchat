@@ -1,5 +1,5 @@
 
-name: Java Tests
+name: Java Unit Tests
 
 on:
   push:
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Get the code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Java
@@ -22,5 +22,5 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Run tests
-        run: mvn --batch-mode test
+      - name: Run unit tests
+        run: mvn --batch-mode clean test

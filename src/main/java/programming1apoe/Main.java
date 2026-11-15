@@ -7,11 +7,10 @@ package programming1apoe;
  *
  * @author ST10522809
  */
-import java.util.Scanner;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
+
+import java.io.IOException;
+import java.util.Scanner;
 
 public class Main {
 
@@ -36,7 +35,7 @@ public class Main {
         String cellPhone = input.nextLine();
 
         Login user = new Login(
-            firstName, lastName, username, password, cellPhone
+                firstName, lastName, username, password, cellPhone
         );
 
         System.out.println(user.registerUser());
@@ -63,21 +62,30 @@ public class Main {
             return;
         }
 
-        runQuickChat(input);
+        runQuickChat(input, firstName + " " + lastName);
     }
 
-    private static void runQuickChat(Scanner input) {
-        List<Message> messages = new ArrayList<>();
-        int nextMessageNumber = 0;
-        int totalSent = 0;
+    private static void runQuickChat(Scanner input, String sender) {
+        QuickchatManager manager = new QuickchatManager();
+
+        try {
+            manager.loadStoredMessages();
+        } catch (IOException e) {
+            System.out.println("Could not load stored messages: "
+                    + e.getMessage());
+        }
+
+        int nextMessageNumber = manager.getAllMessages().size();
         boolean running = true;
 
-        System.out.println("Welcome to QuickChat.");
+        System.out.println("\nWelcome to QuickChat.");
 
         while (running) {
-            System.out.println("\n1) Send Messages");
+            System.out.println("\n===== QUICKCHAT MENU =====");
+            System.out.println("1) Send Messages");
             System.out.println("2) Show recently sent messages");
             System.out.println("3) Quit");
+            System.out.println("4) Stored Messages");
             System.out.print("Choose an option: ");
 
             String choice = input.nextLine().trim();
@@ -97,12 +105,15 @@ public class Main {
                         String text = input.nextLine();
 
                         Message message = new Message(
-                            nextMessageNumber, recipient, text
+                                nextMessageNumber,
+                                recipient,
+                                text
                         );
 
-                        System.out.println(
-                            "Message ID generated: " + message.getMessageID()
-                        );
+                        message.setSender(sender);
+
+                        System.out.println("Message ID generated: "
+                                + message.getMessageID());
 
                         String recipientStatus = message.checkRecipientCell();
                         String lengthStatus = message.checkMessageLength();
@@ -114,48 +125,66 @@ public class Main {
                                 "Cell phone number successfully captured.")
                                 || !lengthStatus.equals("Message ready to send.")) {
                             System.out.println(
-                                "Please correct the details and enter the message again."
+                                    "Please correct the details and enter the message again."
                             );
                             i--;
                             continue;
                         }
 
-                        System.out.println(message.SentMessage(readAction(input)));
+                        String action = readAction(input);
+                        String actionResult = message.SentMessage(action);
+                        System.out.println(actionResult);
 
-                        if ("DISREGARDED".equals(message.getAction())) {
-                            System.out.print("Enter 0 to delete this message: ");
+                        if ("2".equals(action.trim())) {
+                            System.out.print(
+                                    "Enter 0 to confirm that this message is disregarded: "
+                            );
 
-                            if ("0".equals(input.nextLine().trim())) {
-                                nextMessageNumber++;
+                            if (!"0".equals(input.nextLine().trim())) {
+                                System.out.println("Message was not disregarded.");
+                                i--;
                                 continue;
                             }
                         }
 
-                        messages.add(message);
-
-                        if ("SENT".equals(message.getAction())) {
-                            totalSent++;
-                            System.out.println(message.printMessages());
-                        }
-
-                        if ("STORED".equals(message.getAction())) {
+                        if ("1".equals(action.trim())
+                                || "2".equals(action.trim())
+                                || "3".equals(action.trim())) {
                             try {
-                                message.storeMessage(messages);
+                                manager.addMessage(message);
+
+                                if ("SENT".equals(message.getAction())) {
+                                    System.out.println(message.printMessages());
+                                }
+
+                                nextMessageNumber++;
                             } catch (IOException e) {
                                 System.out.println(
-                                    "Could not save messages.json: " + e.getMessage()
+                                        "Could not update messages.json: "
+                                        + e.getMessage()
                                 );
                             }
+                        } else {
+                            System.out.println("Please choose 1, 2 or 3.");
+                            i--;
                         }
-
-                        nextMessageNumber++;
                     }
 
-                    System.out.println("Total messages sent: " + totalSent);
+                    System.out.println("Total messages sent: "
+                            + manager.getSentMessages().length);
                     break;
 
                 case "2":
-                    System.out.println("Coming Soon.");
+                    Message[] sentMessages = manager.getSentMessages();
+
+                    if (sentMessages.length == 0) {
+                        System.out.println("No sent messages yet.");
+                    } else {
+                        for (Message message : sentMessages) {
+                            System.out.println(message.printMessages());
+                            System.out.println();
+                        }
+                    }
                     break;
 
                 case "3":
@@ -163,8 +192,88 @@ public class Main {
                     System.out.println("Thank you for using QuickChat.");
                     break;
 
+                case "4":
+                    storedMessagesMenu(input, manager);
+                    break;
+
                 default:
-                    System.out.println("Invalid option. Choose 1, 2 or 3.");
+                    System.out.println("Invalid option. Choose 1, 2, 3 or 4.");
+            }
+        }
+    }
+
+    private static void storedMessagesMenu(
+            Scanner input, QuickchatManager manager) {
+
+        boolean inMenu = true;
+
+        while (inMenu) {
+            System.out.println("\n===== STORED MESSAGES =====");
+            System.out.println("1) Display sender and recipient");
+            System.out.println("2) Display the longest stored message");
+            System.out.println("3) Search for a message ID");
+            System.out.println("4) Search messages by recipient");
+            System.out.println("5) Delete a message using its hash");
+            System.out.println("6) Display message report");
+            System.out.println("7) Back to main menu");
+            System.out.print("Choose an option: ");
+
+            String choice = input.nextLine().trim();
+
+            switch (choice) {
+                case "1":
+                    System.out.println(
+                            manager.displayStoredSendersAndRecipients()
+                    );
+                    break;
+
+                case "2":
+                    System.out.println(
+                            manager.displayLongestStoredMessage()
+                    );
+                    break;
+
+                case "3":
+                    System.out.print("Enter the message ID: ");
+                    String id = input.nextLine().trim();
+
+                    System.out.println(manager.searchMessageByID(id));
+                    break;
+
+                case "4":
+                    System.out.print("Enter the recipient number: ");
+                    String recipient = input.nextLine().trim();
+
+                    System.out.println(
+                            manager.searchMessagesByRecipient(recipient)
+                    );
+                    break;
+
+                case "5":
+                    System.out.print("Enter the message hash: ");
+                    String hash = input.nextLine().trim();
+
+                    try {
+                        System.out.println(
+                                manager.deleteStoredMessage(hash)
+                        );
+                    } catch (IOException e) {
+                        System.out.println(
+                                "Could not delete message: " + e.getMessage()
+                        );
+                    }
+                    break;
+
+                case "6":
+                    System.out.println(manager.displayMessageReport());
+                    break;
+
+                case "7":
+                    inMenu = false;
+                    break;
+
+                default:
+                    System.out.println("Invalid option. Choose 1 to 7.");
             }
         }
     }
@@ -180,10 +289,12 @@ public class Main {
                     return count;
                 }
             } catch (NumberFormatException e) {
-                // Ask again when the input is not a number.
+                // The user will be asked to enter a valid number.
             }
 
-            System.out.println("Please enter zero or a positive whole number.");
+            System.out.println(
+                    "Please enter zero or a positive whole number."
+            );
         }
     }
 
@@ -193,6 +304,6 @@ public class Main {
         System.out.println("3) Store Message to send later");
         System.out.print("Choose an action: ");
 
-        return input.nextLine();
+        return input.nextLine().trim();
     }
 }

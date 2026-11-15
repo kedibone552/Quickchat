@@ -10,37 +10,54 @@ package programming1apoe;
  */
 
 import java.security.SecureRandom;
-import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
+import java.util.List;
 import java.io.IOException;
 
 public class Message {
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    private final String messageID;
-    private final int messageNumber;
-    private final String recipientCell;
-    private final String messageText;
-    private final String messageHash;
+    private String messageID;
+    private int messageNumber;
+    private String recipientCell;
+    private String messageText;
+    private String messageHash;
     private String action = "";
+    private String sender = "Developer";
+
+    // Used when Gson reads messages from the JSON file.
+    public Message() {
+    }
 
     public Message(int messageNumber, String recipientCell, String messageText) {
-        this.messageID = generateMessageID();
-        this.messageNumber = messageNumber;
-        this.recipientCell = recipientCell == null ? "" : recipientCell.trim();
-        this.messageText = messageText == null ? "" : messageText;
-        this.messageHash = createMessageHash();
+        this(generateMessageID(), messageNumber, recipientCell,
+                messageText, "Developer", "", null);
     }
 
     public Message(String messageID, int messageNumber,
                    String recipientCell, String messageText) {
+        this(messageID, messageNumber, recipientCell,
+                messageText, "Developer", "", null);
+    }
+
+    public Message(String messageID, int messageNumber,
+                   String recipientCell, String messageText,
+                   String sender, String action, String messageHash) {
+
         this.messageID = messageID == null ? "" : messageID;
         this.messageNumber = messageNumber;
         this.recipientCell = recipientCell == null ? "" : recipientCell.trim();
         this.messageText = messageText == null ? "" : messageText;
-        this.messageHash = createMessageHash();
+        this.sender = sender == null ? "Developer" : sender;
+        this.action = action == null ? "" : action;
+
+        if (messageHash == null || messageHash.isEmpty()) {
+            this.messageHash = createMessageHash();
+        } else {
+            this.messageHash = messageHash;
+        }
     }
 
     public static String generateMessageID() {
@@ -54,7 +71,7 @@ public class Message {
     }
 
     public Boolean checkMessageID() {
-        return messageID.matches("[0-9]{1,10}");
+        return messageID != null && messageID.matches("[0-9]{1,10}");
     }
 
     public String checkRecipientCell() {
@@ -130,6 +147,7 @@ public class Message {
     public String printMessages() {
         return "Message ID: " + messageID
                 + "\nMessage Hash: " + messageHash
+                + "\nSender: " + sender
                 + "\nRecipient: " + recipientCell
                 + "\nMessage: " + messageText;
     }
@@ -165,6 +183,14 @@ public class Message {
 
     public String getAction() {
         return action;
+    }
+
+    public String getSender() {
+        return sender;
+    }
+
+    public void setSender(String sender) {
+        this.sender = sender == null ? "Developer" : sender;
     }
 
     public void setAction(String action) {
