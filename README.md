@@ -34,12 +34,23 @@ QuickChat is a registration and login authentication system developed as part of
 
 ## Project Structure
 ```
-src/
-├── main/java/programming1apoe/
-│   ├── Login.java      - Core authentication logic
-│   └── Main.java       - Application entry point
-└── test/java/programming1apoe/
-    └── LoginTest.java  - Unit tests for Login class
+.
+├── .github/workflows/
+│   └── testfava.yml                         - Runs Maven tests on pushes and pull requests to main
+├── pom.xml                                  - Maven configuration and project dependencies
+├── src/
+│   ├── main/java/programming1apoe/
+│   │   ├── Login.java                       - Registration and login validation
+│   │   ├── Main.java                        - Console application entry point
+│   │   ├── Message.java                     - QuickChat message model
+│   │   ├── MessageStorage.java              - Message persistence
+│   │   └── QuickchatManager.java            - Message management and reporting
+│   └── test/java/programming1apoe/
+│       ├── LoginTest.java                   - Login and registration tests
+│       ├── MessageStorageTest.java           - Message storage tests
+│       ├── MessageTest.java                 - Message model tests
+│       └── QuickchatManagerTest.java        - Message manager tests
+└── README.md
 ```
 
 ## Running the Application
